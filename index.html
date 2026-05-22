@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MyLedger</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/supabase.js" defer></script>
+  </head>
+  <body class="bg-slate-50 text-slate-900">
+    <main class="flex min-h-screen items-center justify-center p-6">
+      <div class="text-center">
+        <h1 class="text-2xl font-semibold">MyLedger</h1>
+        <p class="mt-2 text-sm text-slate-500">Redirecting…</p>
+      </div>
+    </main>
+    <script>
+      // Entry point — redirect based on auth state.
+      // Wired up in Phase 3 (Authentication).
+      window.addEventListener('DOMContentLoaded', async () => {
+        try {
+          const { data } = await window.supabaseClient.auth.getSession();
+          window.location.replace(data.session ? '/dashboard' : '/login');
+        } catch (err) {
+          console.error(err);
+          window.location.replace('/login');
+        }
+      });
+    </script>
+  </body>
+</html>
