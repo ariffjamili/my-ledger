@@ -7,14 +7,107 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/assets/js/supabase.js" defer></script>
+    <script src="/assets/js/utils.js" defer></script>
     <script src="/assets/js/auth.js" defer></script>
   </head>
-  <body class="bg-slate-50 text-slate-900">
+  <body class="bg-slate-50 text-slate-900" data-auth="guest-only">
     <main class="flex min-h-screen items-center justify-center p-6">
       <section class="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
         <h1 class="text-xl font-semibold">Log in to MyLedger</h1>
-        <p class="mt-1 text-sm text-slate-500">Phase 3 — Authentication. Form to be implemented.</p>
+
+        <form id="login-form" class="mt-4 space-y-3" novalidate>
+          <div>
+            <label for="login-email" class="block text-sm font-medium">Email</label>
+            <input id="login-email" name="email" type="email" autocomplete="email" required
+                   class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500" />
+          </div>
+          <div>
+            <label for="login-password" class="block text-sm font-medium">Password</label>
+            <input id="login-password" name="password" type="password" autocomplete="current-password" required minlength="8"
+                   class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500" />
+          </div>
+          <button type="submit"
+                  class="w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50">
+            Log in
+          </button>
+        </form>
+
+        <div class="mt-4 flex justify-between text-sm">
+          <button type="button" data-action="show-forgot" class="text-slate-600 hover:underline">Forgot password?</button>
+          <a href="/register" class="text-slate-600 hover:underline">Create account</a>
+        </div>
+
+        <form id="forgot-form" class="mt-4 space-y-3 hidden border-t border-slate-200 pt-4" novalidate>
+          <h2 class="text-sm font-semibold">Reset your password</h2>
+          <p class="text-xs text-slate-500">We'll email you a link to set a new password.</p>
+          <div>
+            <label for="forgot-email" class="block text-sm font-medium">Email</label>
+            <input id="forgot-email" type="email" autocomplete="email" required
+                   class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500" />
+          </div>
+          <div class="flex gap-2">
+            <button type="submit"
+                    class="flex-1 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50">
+              Send reset email
+            </button>
+            <button type="button" data-action="hide-forgot"
+                    class="rounded-md border border-slate-300 px-4 py-2 text-sm">
+              Cancel
+            </button>
+          </div>
+        </form>
       </section>
     </main>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const loginForm = document.getElementById('login-form');
+        const forgotForm = document.getElementById('forgot-form');
+
+        document.querySelector('[data-action="show-forgot"]').addEventListener('click', () => {
+          loginForm.classList.add('hidden');
+          forgotForm.classList.remove('hidden');
+        });
+        document.querySelector('[data-action="hide-forgot"]').addEventListener('click', () => {
+          forgotForm.classList.add('hidden');
+          loginForm.classList.remove('hidden');
+        });
+
+        loginForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const submit = loginForm.querySelector('button[type="submit"]');
+          submit.disabled = true;
+          try {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            await window.auth.signIn(email, password);
+            window.location.replace('/dashboard');
+          } catch (err) {
+            console.error(err);
+            window.utils.toast(err.message || 'Login failed', 'error');
+            submit.disabled = false;
+          }
+        });
+
+        forgotForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const submit = forgotForm.querySelector('button[type="submit"]');
+          submit.disabled = true;
+          try {
+            const email = document.getElementById('forgot-email').value.trim();
+            await window.auth.requestPasswordReset(email);
+            window.utils.toast('Check your email for a reset link', 'success');
+            forgotForm.reset();
+            forgotForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+          } catch (err) {
+            console.error(err);
+            window.utils.toast(err.message || 'Could not send email', 'error');
+          } finally {
+            submit.disabled = false;
+          }
+        });
+      });
+    </script>
   </body>
 </html>

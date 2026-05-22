@@ -7,9 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/assets/js/supabase.js" defer></script>
+    <script src="/assets/js/utils.js" defer></script>
     <script src="/assets/js/auth.js" defer></script>
   </head>
-  <body class="bg-slate-50 text-slate-900">
+  <body class="bg-slate-50 text-slate-900" data-auth="required">
     <nav class="border-b border-slate-200 bg-white">
       <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         <a href="/dashboard" class="font-semibold">MyLedger</a>
@@ -29,7 +30,72 @@
     </nav>
     <main class="mx-auto max-w-2xl px-4 py-6">
       <h1 class="text-2xl font-semibold">Settings</h1>
-      <p class="mt-1 text-sm text-slate-500">Phase 3 — Authentication. Change password form to be implemented.</p>
+
+      <section class="mt-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="text-lg font-semibold">Account</h2>
+        <p class="mt-1 text-sm text-slate-600">Logged in as <span id="account-email" class="font-medium">…</span>.</p>
+      </section>
+
+      <section class="mt-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="text-lg font-semibold">Change password</h2>
+        <form id="password-form" class="mt-4 space-y-3" novalidate>
+          <div>
+            <label for="new-password" class="block text-sm font-medium">New password</label>
+            <input id="new-password" type="password" autocomplete="new-password" required minlength="8"
+                   class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500" />
+            <p class="mt-1 text-xs text-slate-500">Minimum 8 characters.</p>
+          </div>
+          <div>
+            <label for="confirm-password" class="block text-sm font-medium">Confirm new password</label>
+            <input id="confirm-password" type="password" autocomplete="new-password" required minlength="8"
+                   class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500" />
+          </div>
+          <button type="submit"
+                  class="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50">
+            Update password
+          </button>
+        </form>
+      </section>
     </main>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', async () => {
+        try {
+          const user = await window.auth.getUser();
+          if (user) document.getElementById('account-email').textContent = user.email;
+        } catch (err) {
+          console.error(err);
+        }
+
+        const form = document.getElementById('password-form');
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const submit = form.querySelector('button[type="submit"]');
+          const newPassword = document.getElementById('new-password').value;
+          const confirm = document.getElementById('confirm-password').value;
+
+          if (newPassword !== confirm) {
+            window.utils.toast('Passwords do not match', 'error');
+            return;
+          }
+          if (newPassword.length < 8) {
+            window.utils.toast('Password must be at least 8 characters', 'error');
+            return;
+          }
+
+          submit.disabled = true;
+          try {
+            await window.auth.updatePassword(newPassword);
+            window.utils.toast('Password updated', 'success');
+            form.reset();
+          } catch (err) {
+            console.error(err);
+            window.utils.toast(err.message || 'Could not update password', 'error');
+          } finally {
+            submit.disabled = false;
+          }
+        });
+      });
+    </script>
   </body>
 </html>

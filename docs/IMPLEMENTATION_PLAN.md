@@ -267,12 +267,12 @@ const defaultCategories = [
 - Set Site URL to Vercel domain
 - Add redirect URL for password reset: `https://your-domain.vercel.app/reset-password`
 
-- [ ] Login page — form, error handling, redirect on success
-- [ ] Register page — form, password confirmation, seed categories on success
-- [ ] Forgot password — email input, success message
-- [ ] Reset password — new password + confirm, handles Supabase redirect token
-- [ ] `checkSession()` guard added to all 7 protected pages
-- [ ] Logout button in nav on all protected pages
+- [x] Login page — form, error handling, redirect on success
+- [x] Register page — form, password confirmation, seed categories on success (via `db/triggers.sql`)
+- [x] Forgot password — email input, success message (inline on `/login`)
+- [x] Reset password — new password + confirm, handles Supabase redirect token
+- [x] `checkSession()` guard added to all 7 protected pages (via `<body data-auth="required">`)
+- [x] Logout button in nav on all protected pages (wired via `[data-action="logout"]`)
 
 ---
 
@@ -579,7 +579,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 |---|---|
 | Phase 1 — Project Setup | ✅ Complete |
 | Phase 2 — Database & Storage | ✅ Complete |
-| Phase 3 — Authentication | ⬜ Not started |
+| Phase 3 — Authentication | 🟡 Code complete — awaiting `db/triggers.sql` run + Supabase Auth dashboard config |
 | Phase 4 — Categories | ⬜ Not started |
 | Phase 5 — Transactions CRUD | ⬜ Not started |
 | Phase 6 — Dashboard | ⬜ Not started |
