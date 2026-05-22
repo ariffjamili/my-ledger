@@ -95,7 +95,7 @@ my-ledger/
 - [x] Write `README.md` (see documentation requirements below)
 - [x] Write `docs/DEPLOYMENT.md`
 - [x] Write `docs/CHANGELOG.md` with initial entry
-- [ ] Push to GitHub
+- [x] Push to GitHub
 
 **vercel.json routing config:**
 ```json
@@ -577,7 +577,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 | Phase | Status |
 |---|---|
-| Phase 1 — Project Setup | 🟡 In progress — local setup complete; GitHub push pending |
+| Phase 1 — Project Setup | ✅ Complete |
 | Phase 2 — Database & Storage | ⬜ Not started |
 | Phase 3 — Authentication | ⬜ Not started |
 | Phase 4 — Categories | ⬜ Not started |
