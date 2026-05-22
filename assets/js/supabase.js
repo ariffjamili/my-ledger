@@ -14,11 +14,11 @@
 
 const SUPABASE_URL =
   (typeof window !== 'undefined' && window.ENV && window.ENV.SUPABASE_URL) ||
-  'https://your-project.supabase.co';
+  'https://qocwgimevjneavtvamas.supabase.co';
 
 const SUPABASE_ANON_KEY =
   (typeof window !== 'undefined' && window.ENV && window.ENV.SUPABASE_ANON_KEY) ||
-  'your-anon-key';
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvY3dnaW1ldmpuZWF2dHZhbWFzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzOTEwNTMsImV4cCI6MjA5NDk2NzA1M30.IqvdyU0NirWlV4MA7gErIxQznLcbZ2KOCkXbAdlw5dY';
 
 if (!window.supabase || typeof window.supabase.createClient !== 'function') {
   throw new Error(
