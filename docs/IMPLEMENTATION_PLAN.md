@@ -205,10 +205,10 @@ CREATE POLICY "Users can delete own receipts"
   USING (bucket_id = 'receipts' AND auth.uid()::text = (storage.foldername(name))[1]);
 ```
 
-- [ ] All tables created and verified
-- [ ] RLS policies applied on both tables
-- [ ] Storage bucket `receipts` created
-- [ ] Storage policies applied
+- [x] All tables created and verified
+- [x] RLS policies applied on both tables
+- [x] Storage bucket `receipts` created
+- [x] Storage policies applied
 
 ---
 
@@ -578,7 +578,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 | Phase | Status |
 |---|---|
 | Phase 1 — Project Setup | ✅ Complete |
-| Phase 2 — Database & Storage | ⬜ Not started |
+| Phase 2 — Database & Storage | ✅ Complete |
 | Phase 3 — Authentication | ⬜ Not started |
 | Phase 4 — Categories | ⬜ Not started |
 | Phase 5 — Transactions CRUD | ⬜ Not started |
