@@ -588,4 +588,35 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ---
 
+## 👉 Resume here (paused 2026-05-22)
+
+Phase 3 application code is committed and pushed (commit `f750aa4`).
+**Two manual steps in the Supabase Dashboard remain before Phase 3 can be smoke-tested and closed.** Do these first when you come back, then move on to Phase 4.
+
+### Manual step 1 — Run the auth trigger SQL
+- Supabase Dashboard → **SQL Editor** → **New query**
+- Paste the contents of [`db/triggers.sql`](../db/triggers.sql) → **Run**
+- Verify with: `SELECT tgname FROM pg_trigger WHERE tgname = 'on_auth_user_created';` (1 row expected)
+
+### Manual step 2 — Configure Supabase Auth in the dashboard
+- **Authentication → URL Configuration**
+  - **Site URL:** your Vercel domain (or `http://localhost:8080` for local testing)
+  - **Redirect URLs (allowlist):** add `https://<your-vercel-domain>.vercel.app/**` AND the local URL you use (e.g. `http://localhost:8080/**`)
+- **Authentication → Providers → Email**
+  - Enable **Confirm email**: On
+  - **Minimum password length:** 8
+
+### Smoke test after both steps
+1. `python3 -m http.server 8080` then open `http://localhost:8080/login.html`
+2. Go to `/register.html`, create an account, confirm via email link
+3. Log in → should land on `/dashboard`
+4. Check Supabase `categories` table — new user should have 21 rows
+5. Log out, try "Forgot password?" → check inbox → reset → log in with new password
+
+Once smoke test passes:
+- Flip Phase 3 status to ✅
+- Proceed to Phase 4 (Categories)
+
+---
+
 *MyLedger Implementation Plan v1.0.0 — Created 2026-05-22*
