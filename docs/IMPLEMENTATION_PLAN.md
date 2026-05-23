@@ -23,7 +23,7 @@ This document is the continuation point for building **MyLedger** — a multi-us
 | Frontend | HTML5 + Tailwind CSS (CDN) + Vanilla JavaScript |
 | Auth / DB / Storage | Supabase (`@supabase/supabase-js` v2 via CDN) |
 | Charts | Chart.js v4 (CDN) |
-| Hosting | Vercel (static) |
+| Hosting | Cloudflare Pages (static) |
 | Source Control | GitHub |
 
 ### Key Constraints
@@ -71,7 +71,7 @@ my-ledger/
 │   └── CHANGELOG.md
 ├── .env.example
 ├── .gitignore
-├── vercel.json
+├── _redirects
 └── README.md
 ```
 
@@ -90,31 +90,25 @@ my-ledger/
   SUPABASE_ANON_KEY=your-anon-key
   ```
 - [x] Create `assets/js/supabase.js` — initialise Supabase client reading from `window.ENV` or inline config
-- [x] Create `vercel.json` with clean URL routing (no `.html` extensions)
+- [x] Create `_redirects` with clean URL routing for Cloudflare Pages (no `.html` extensions)
 - [x] Create stub HTML files for all 11 pages (empty shell with nav placeholder)
 - [x] Write `README.md` (see documentation requirements below)
 - [x] Write `docs/DEPLOYMENT.md`
 - [x] Write `docs/CHANGELOG.md` with initial entry
 - [x] Push to GitHub
 
-**vercel.json routing config:**
-```json
-{
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "rewrites": [
-    { "source": "/dashboard", "destination": "/dashboard.html" },
-    { "source": "/transactions", "destination": "/transactions.html" },
-    { "source": "/transactions/add", "destination": "/transactions-add.html" },
-    { "source": "/transactions/edit", "destination": "/transactions-edit.html" },
-    { "source": "/reports", "destination": "/reports.html" },
-    { "source": "/categories", "destination": "/categories.html" },
-    { "source": "/settings", "destination": "/settings.html" },
-    { "source": "/login", "destination": "/login.html" },
-    { "source": "/register", "destination": "/register.html" },
-    { "source": "/reset-password", "destination": "/reset-password.html" }
-  ]
-}
+**`_redirects` routing config** (Cloudflare Pages reads this at deploy time; status `200` = rewrite, URL stays the same):
+```
+/dashboard          /dashboard.html          200
+/transactions       /transactions.html       200
+/transactions/add   /transactions-add.html   200
+/transactions/edit  /transactions-edit.html  200
+/reports            /reports.html            200
+/categories         /categories.html         200
+/settings           /settings.html           200
+/login              /login.html              200
+/register           /register.html           200
+/reset-password     /reset-password.html     200
 ```
 
 ---
@@ -264,8 +258,8 @@ const defaultCategories = [
 **Supabase Auth settings to configure in dashboard:**
 - Enable email confirmations: Yes
 - Password minimum length: 8
-- Set Site URL to Vercel domain
-- Add redirect URL for password reset: `https://your-domain.vercel.app/reset-password`
+- Set Site URL to Cloudflare Pages domain (e.g. `https://my-ledger.pages.dev`)
+- Add redirect URL allowlist entry: `https://my-ledger.pages.dev/**` (covers `/reset-password` and `/login` confirmation redirects)
 
 - [x] Login page — form, error handling, redirect on success
 - [x] Register page — form, password confirmation, seed categories on success (via `db/triggers.sql`)
@@ -522,7 +516,7 @@ The following documentation files must be maintained throughout development:
 - Prerequisites
 - Local setup steps (clone → configure env → open in browser)
 - Supabase setup steps (create project, run SQL, create bucket)
-- Vercel deployment steps
+- Cloudflare Pages deployment steps
 - Environment variables reference
 - Project structure overview
 - Link to `docs/PRD.md`
@@ -600,8 +594,8 @@ Phase 3 application code is committed and pushed (commit `f750aa4`).
 
 ### Manual step 2 — Configure Supabase Auth in the dashboard
 - **Authentication → URL Configuration**
-  - **Site URL:** your Vercel domain (or `http://localhost:8080` for local testing)
-  - **Redirect URLs (allowlist):** add `https://<your-vercel-domain>.vercel.app/**` AND the local URL you use (e.g. `http://localhost:8080/**`)
+  - **Site URL:** your Cloudflare Pages domain (or `http://localhost:8080` for local testing)
+  - **Redirect URLs (allowlist):** add `https://<project>.pages.dev/**` (plus any custom domain) AND the local URL you use (e.g. `http://localhost:8080/**`)
 - **Authentication → Providers → Email**
   - Enable **Confirm email**: On
   - **Minimum password length:** 8

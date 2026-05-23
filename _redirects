@@ -1,0 +1,15 @@
+# Cloudflare Pages — clean URL rewrites
+# Format: <from>  <to>  <status>
+# 200 = rewrite (URL stays the same); 301/302 = redirect.
+# Note: `/` already serves index.html by default — no explicit rule needed.
+
+/dashboard          /dashboard.html          200
+/transactions       /transactions.html       200
+/transactions/add   /transactions-add.html   200
+/transactions/edit  /transactions-edit.html  200
+/reports            /reports.html            200
+/categories         /categories.html         200
+/settings           /settings.html           200
+/login              /login.html              200
+/register           /register.html           200
+/reset-password     /reset-password.html     200

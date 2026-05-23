@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Hosting switched from Vercel to Cloudflare Pages. `vercel.json` removed; `_redirects` added in the project root with clean-URL rewrites for all 10 non-index routes. Deployment and README docs updated to reflect Cloudflare Pages setup (dashboard connect-to-Git flow, env vars, custom domain via Cloudflare-managed DNS).
+
 ### Planned for V2
 - OCR / automated data extraction from receipt images
 - Social login (Google, Apple)
@@ -38,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CSV export for any selected month
 - Row Level Security (RLS) enforced on all database tables and storage
 - Mobile-responsive design (375px to 1920px)
-- Vercel deployment with clean URLs
+- Cloudflare Pages deployment with clean URLs via `_redirects`
 
 ---
 

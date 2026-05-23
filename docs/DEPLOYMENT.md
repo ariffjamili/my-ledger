@@ -11,7 +11,7 @@
 
 ## Overview
 
-MyLedger is a static web application. There is no server-side runtime. The frontend is hosted on **Vercel**, the database and auth are managed by **Supabase**, and the source code lives on **GitHub**. Vercel auto-deploys on every push to the `main` branch.
+MyLedger is a static web application. There is no server-side runtime. The frontend is hosted on **Cloudflare Pages**, the database and auth are managed by **Supabase**, and the source code lives on **GitHub**. Cloudflare Pages auto-deploys on every push to the `main` branch.
 
 ---
 
@@ -21,7 +21,7 @@ Before deploying, ensure you have accounts on:
 
 - [GitHub](https://github.com) — source control
 - [Supabase](https://supabase.com) — database, auth, and storage
-- [Vercel](https://vercel.com) — static hosting
+- [Cloudflare](https://dash.cloudflare.com) — static hosting via Cloudflare Pages
 
 No Node.js, no build tools, and no package manager are required to run this project.
 
@@ -131,8 +131,8 @@ CREATE POLICY "Users can delete own receipts"
 ### 1.5 Configure Auth Settings
 
 1. Go to **Authentication → Settings**
-2. Set **Site URL** to your Vercel URL (e.g. `https://myledger.vercel.app`)
-3. Under **Redirect URLs**, add: `https://myledger.vercel.app/reset-password`
+2. Set **Site URL** to your Cloudflare Pages URL (e.g. `https://my-ledger.pages.dev`)
+3. Under **Redirect URLs**, add: `https://my-ledger.pages.dev/**`
 4. Enable **Email confirmations** if desired
 5. Set **Minimum password length** to `8`
 
@@ -173,69 +173,70 @@ git push -u origin main
 
 ---
 
-## Step 3 — Vercel Setup
+## Step 3 — Cloudflare Pages Setup
 
-### 3.1 Import the GitHub Repository
+### 3.1 Connect the GitHub Repository
 
-1. Log in to [vercel.com](https://vercel.com)
-2. Click **Add New → Project**
-3. Select **Import Git Repository**
-4. Choose your `my-ledger` GitHub repo
-5. Click **Import**
+1. Log in to the [Cloudflare Dashboard](https://dash.cloudflare.com)
+2. Go to **Workers & Pages → Create → Pages → Connect to Git**
+3. Authorise Cloudflare to access your GitHub account if prompted
+4. Select your `my-ledger` repository → **Begin setup**
 
-### 3.2 Configure the Project
+### 3.2 Configure the Build
 
-In the project settings during import:
-- **Framework Preset:** Other
-- **Build Command:** (leave empty)
-- **Output Directory:** (leave empty — root)
-- **Install Command:** (leave empty)
+On the build configuration screen:
+- **Project name:** `my-ledger` (this becomes part of the default `*.pages.dev` URL)
+- **Production branch:** `main`
+- **Framework preset:** None
+- **Build command:** (leave empty)
+- **Build output directory:** (leave empty — defaults to the repo root)
+- **Root directory:** (leave empty)
+
+Click **Save and Deploy**. The first deployment takes ~30 seconds and the app goes live at `https://my-ledger.pages.dev` (or `https://my-ledger-<hash>.pages.dev` if the project name is taken).
 
 ### 3.3 Set Environment Variables
 
-In the Vercel project settings → **Environment Variables**, add:
+In **Pages project → Settings → Environment variables**, add for both **Production** and **Preview**:
 
 | Name | Value |
 |---|---|
 | `SUPABASE_URL` | `https://your-project.supabase.co` |
 | `SUPABASE_ANON_KEY` | `your-anon-key` |
 
-Set both for **Production**, **Preview**, and **Development** environments.
+> **Note:** Since this is a static frontend with no build step, Cloudflare Pages does **not** inject these into HTML at deploy time. The values are inlined in `assets/js/supabase.js`. The variables above are stored for reference and for any future build step that may pick them up via `window.ENV` (see the fallback chain at the top of [`assets/js/supabase.js`](../assets/js/supabase.js)).
 
-> **Note:** Since this is a static frontend with no server-side runtime, these env vars are referenced directly in `assets/js/supabase.js`. Vercel does not inject them automatically into static HTML. The recommended approach is to inline the values in `supabase.js` for now, or use a build script in a future version.
+### 3.4 Clean URLs
 
-### 3.4 Deploy
-
-1. Click **Deploy**
-2. Wait for the build to complete (~30 seconds)
-3. Your app will be live at `https://your-project-name.vercel.app`
+Clean URLs (no `.html` extension) are configured via the [`_redirects`](../_redirects) file in the project root — Cloudflare Pages reads it at deploy time. No dashboard configuration is required.
 
 ### 3.5 Update Supabase Auth URLs
 
-After getting your Vercel URL:
-1. Go back to Supabase → **Authentication → Settings**
-2. Update **Site URL** to your live Vercel URL
-3. Update **Redirect URL** to `https://your-vercel-url.vercel.app/reset-password`
+After the first Pages deployment, get your live URL (e.g. `https://my-ledger.pages.dev`) and:
+1. Go to Supabase → **Authentication → URL Configuration**
+2. Set **Site URL** to your Pages URL
+3. Under **Redirect URLs (allowlist)**, add `https://my-ledger.pages.dev/**`
 
 ---
 
 ## Step 4 — Custom Domain (Optional)
 
-1. In Vercel project → **Settings → Domains**
-2. Add your custom domain
-3. Update DNS records at your domain registrar as instructed by Vercel
-4. Update Supabase **Site URL** and **Redirect URL** to your custom domain
+Because your DNS is already on Cloudflare, this is a native two-click setup with no external DNS edits.
+
+1. In your Pages project → **Custom domains → Set up a custom domain**
+2. Enter the domain (apex like `myledger.example.com` or subdomain) → **Continue**
+3. Cloudflare auto-creates the required DNS record in your zone and provisions a TLS certificate
+4. Once active, update Supabase **Site URL** and add the new domain (with `/**`) to **Redirect URLs**
 
 ---
 
 ## Continuous Deployment
 
-Once connected, every push to the `main` branch on GitHub automatically triggers a new Vercel deployment. No manual steps required.
+Once connected, every push to the `main` branch on GitHub automatically triggers a new Cloudflare Pages deployment. No manual steps required.
 
 | Branch | Environment |
 |---|---|
-| `main` | Production |
-| Any other branch | Preview URL (Vercel) |
+| `main` | Production (`<project>.pages.dev` and any custom domains) |
+| Any other branch | Preview URL (`<branch>.<project>.pages.dev`) |
 
 ---
 
@@ -266,7 +267,7 @@ python3 -m http.server 8080
 | Password reset email not received | Check Supabase Auth → Logs; verify Site URL and Redirect URL are set correctly |
 | Receipt upload fails | Verify storage bucket name is `receipts` and storage policies are applied |
 | RLS errors in console | Check that RLS policies exist on both tables; verify user is authenticated |
-| Vercel 404 on page refresh | Ensure `vercel.json` rewrites are present and correct |
+| Cloudflare Pages 404 on page refresh | Ensure `_redirects` is present in the repo root and rules use status `200` (rewrite, not 301) |
 | CORS errors | Ensure Supabase Site URL matches the domain you are accessing from |
 
 ---

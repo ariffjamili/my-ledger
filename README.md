@@ -1,6 +1,6 @@
 # MyLedger
 
-A multi-user personal income and expense tracker built with Supabase, Tailwind CSS, and Vanilla JavaScript. Hosted on Vercel.
+A multi-user personal income and expense tracker built with Supabase, Tailwind CSS, and Vanilla JavaScript. Hosted on Cloudflare Pages.
 
 ---
 
@@ -17,7 +17,7 @@ MyLedger allows individuals to log income and expenses, attach receipt images, m
 | Frontend | HTML5 + Tailwind CSS (CDN) + Vanilla JavaScript |
 | Auth / Database / Storage | Supabase |
 | Charts | Chart.js v4 (CDN) |
-| Hosting | Vercel |
+| Hosting | Cloudflare Pages |
 | Source Control | GitHub |
 
 ---
@@ -25,7 +25,7 @@ MyLedger allows individuals to log income and expenses, attach receipt images, m
 ## Prerequisites
 
 - A [Supabase](https://supabase.com) account (free tier works)
-- A [Vercel](https://vercel.com) account (free tier works)
+- A [Cloudflare](https://dash.cloudflare.com) account (free tier works)
 - A [GitHub](https://github.com) account
 - A browser and a text editor (VS Code recommended)
 - No Node.js, no npm, no build tools required
@@ -69,15 +69,17 @@ Quick summary:
 
 ---
 
-## Vercel Deployment
+## Cloudflare Pages Deployment
 
 See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for the full deployment guide.
 
 Quick summary:
 1. Push this repository to GitHub
-2. Import the GitHub repo into Vercel
-3. Add `SUPABASE_URL` and `SUPABASE_ANON_KEY` as environment variables in Vercel
-4. Deploy — every push to `main` triggers an automatic redeploy
+2. In Cloudflare Dashboard → **Workers & Pages → Create → Pages → Connect to Git**, import the repo
+3. Build settings: **Framework preset = None**, build command empty, output directory empty
+4. Add `SUPABASE_URL` and `SUPABASE_ANON_KEY` as environment variables in the Pages project
+5. Deploy — every push to `main` triggers an automatic redeploy
+6. Clean URLs are configured via [`_redirects`](_redirects) (no `.html` suffix)
 
 ---
 
@@ -128,7 +130,7 @@ my-ledger/
 │   └── CHANGELOG.md            # Version history
 ├── .env.example                # Environment variable template
 ├── .gitignore
-├── vercel.json                 # Vercel routing configuration
+├── _redirects                  # Cloudflare Pages clean-URL rules
 └── README.md                   # This file
 ```
 
@@ -140,7 +142,7 @@ my-ledger/
 |---|---|
 | [`docs/PRD.md`](docs/PRD.md) | Full product requirements, data model, user flows, and security policies |
 | [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) | Phase-by-phase build checklist for developers |
-| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Step-by-step Supabase, GitHub, and Vercel deployment guide |
+| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Step-by-step Supabase, GitHub, and Cloudflare Pages deployment guide |
 | [`docs/CHANGELOG.md`](docs/CHANGELOG.md) | Version history |
 
 ---
