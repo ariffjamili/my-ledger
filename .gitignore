@@ -2,3 +2,6 @@
 .DS_Store
 node_modules/
 *.log
+
+# Local Apache dev (mirrors _redirects via mod_rewrite); not for deploy
+.htaccess
