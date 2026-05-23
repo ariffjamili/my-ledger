@@ -573,7 +573,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 |---|---|
 | Phase 1 — Project Setup | ✅ Complete |
 | Phase 2 — Database & Storage | ✅ Complete |
-| Phase 3 — Authentication | 🟡 Code complete — awaiting `db/triggers.sql` run + Supabase Auth dashboard config |
+| Phase 3 — Authentication | 🟡 Code complete + trigger SQL run; awaiting Supabase Auth dashboard config + end-to-end smoke test |
 | Phase 4 — Categories | ⬜ Not started |
 | Phase 5 — Transactions CRUD | ⬜ Not started |
 | Phase 6 — Dashboard | ⬜ Not started |
@@ -582,30 +582,32 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ---
 
-## 👉 Resume here (paused 2026-05-22)
+## 👉 Resume here
 
 Phase 3 application code is committed and pushed (commit `f750aa4`).
-**Two manual steps in the Supabase Dashboard remain before Phase 3 can be smoke-tested and closed.** Do these first when you come back, then move on to Phase 4.
+Local Apache vhost is live at `http://my-ledger:8080/` (see `assets/js/supabase.js`, gitignored `.htaccess`).
 
-### Manual step 1 — Run the auth trigger SQL
-- Supabase Dashboard → **SQL Editor** → **New query**
-- Paste the contents of [`db/triggers.sql`](../db/triggers.sql) → **Run**
-- Verify with: `SELECT tgname FROM pg_trigger WHERE tgname = 'on_auth_user_created';` (1 row expected)
+### Manual step 1 — Run the auth trigger SQL ✅ Done
+- Ran [`db/triggers.sql`](../db/triggers.sql) in Supabase SQL Editor.
 
 ### Manual step 2 — Configure Supabase Auth in the dashboard
+No Cloudflare Pages deployment yet, so use the local Apache vhost URL for now. Re-point Site URL and add the pages.dev URL after deploying.
+
 - **Authentication → URL Configuration**
-  - **Site URL:** your Cloudflare Pages domain (or `http://localhost:8080` for local testing)
-  - **Redirect URLs (allowlist):** add `https://<project>.pages.dev/**` (plus any custom domain) AND the local URL you use (e.g. `http://localhost:8080/**`)
+  - **Site URL:** `http://my-ledger:8080`
+  - **Redirect URLs (allowlist):** add `http://my-ledger:8080/**`
+  - *(After Cloudflare deploy: change Site URL to `https://<project>.pages.dev`, add `https://<project>.pages.dev/**` to the allowlist; keep the local entry.)*
 - **Authentication → Providers → Email**
   - Enable **Confirm email**: On
   - **Minimum password length:** 8
 
-### Smoke test after both steps
-1. `python3 -m http.server 8080` then open `http://localhost:8080/login.html`
-2. Go to `/register.html`, create an account, confirm via email link
-3. Log in → should land on `/dashboard`
-4. Check Supabase `categories` table — new user should have 21 rows
-5. Log out, try "Forgot password?" → check inbox → reset → log in with new password
+### Smoke test after manual step 2
+Apache vhost is already running — no local server to start.
+
+1. Open `http://my-ledger:8080/register`, create an account, confirm via the email link
+2. Log in → should land on `/dashboard`
+3. Check Supabase `categories` table — new user should have 21 rows (trigger-seeded)
+4. Log out, try "Forgot password?" → check inbox → reset → log in with new password
 
 Once smoke test passes:
 - Flip Phase 3 status to ✅
