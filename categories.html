@@ -29,9 +29,251 @@
         </ul>
       </div>
     </nav>
+
     <main class="mx-auto max-w-3xl px-4 py-6">
       <h1 class="text-2xl font-semibold">Categories</h1>
-      <p class="mt-1 text-sm text-slate-500">Phase 4 — Categories. CRUD UI to be implemented.</p>
+      <p class="mt-1 text-sm text-slate-500">Organise your income and expense categories. Deleting a category leaves existing transactions intact but uncategorised.</p>
+
+      <section class="mt-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="text-lg font-semibold">Add category</h2>
+        <form id="add-form" class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_auto] sm:items-end" novalidate>
+          <div>
+            <label for="add-name" class="block text-sm font-medium">Name</label>
+            <input id="add-name" type="text" required maxlength="50" autocomplete="off"
+                   class="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500" />
+          </div>
+          <div>
+            <label for="add-type" class="block text-sm font-medium">Type</label>
+            <select id="add-type"
+                    class="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500">
+              <option value="expense">Expense</option>
+              <option value="income">Income</option>
+            </select>
+          </div>
+          <button type="submit"
+                  class="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50">
+            Add
+          </button>
+        </form>
+      </section>
+
+      <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+        <section class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 class="text-lg font-semibold">Income</h2>
+          <ul id="income-list" class="mt-4 divide-y divide-slate-100"></ul>
+          <p id="income-empty" class="mt-4 hidden text-sm text-slate-500">No income categories yet.</p>
+        </section>
+
+        <section class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 class="text-lg font-semibold">Expense</h2>
+          <ul id="expense-list" class="mt-4 divide-y divide-slate-100"></ul>
+          <p id="expense-empty" class="mt-4 hidden text-sm text-slate-500">No expense categories yet.</p>
+        </section>
+      </div>
+
+      <div id="loading" class="mt-6 text-sm text-slate-500">Loading…</div>
     </main>
+
+    <dialog id="delete-dialog" class="rounded-lg border border-slate-200 p-0 shadow-xl backdrop:bg-slate-900/40">
+      <form method="dialog" class="w-80 max-w-full p-6">
+        <h3 class="text-base font-semibold">Delete category?</h3>
+        <p class="mt-2 text-sm text-slate-600">
+          <span id="delete-name" class="font-medium"></span>
+          <span id="delete-warning" class="mt-1 block text-amber-700"></span>
+        </p>
+        <div class="mt-4 flex justify-end gap-2">
+          <button value="cancel"
+                  class="rounded-md border border-slate-300 px-3 py-1.5 text-sm">Cancel</button>
+          <button id="delete-confirm" value="confirm"
+                  class="rounded-md bg-rose-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-rose-700">Delete</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const addForm = document.getElementById('add-form');
+        const addName = document.getElementById('add-name');
+        const addType = document.getElementById('add-type');
+        const lists = {
+          income:  document.getElementById('income-list'),
+          expense: document.getElementById('expense-list'),
+        };
+        const empties = {
+          income:  document.getElementById('income-empty'),
+          expense: document.getElementById('expense-empty'),
+        };
+        const loadingEl = document.getElementById('loading');
+        const dialog = document.getElementById('delete-dialog');
+        const deleteName = document.getElementById('delete-name');
+        const deleteWarning = document.getElementById('delete-warning');
+
+        let pendingDeleteId = null;
+
+        async function render() {
+          loadingEl.classList.remove('hidden');
+          try {
+            const [rows, counts] = await Promise.all([
+              window.categories.getCategories(),
+              window.categories.getTransactionCounts(),
+            ]);
+            const grouped = { income: [], expense: [] };
+            for (const c of rows) grouped[c.type].push(c);
+            for (const type of ['income', 'expense']) {
+              renderList(type, grouped[type], counts);
+            }
+          } catch (err) {
+            console.error(err);
+            window.utils.toast(err.message || 'Could not load categories', 'error');
+          } finally {
+            loadingEl.classList.add('hidden');
+          }
+        }
+
+        function renderList(type, items, counts) {
+          const ul = lists[type];
+          ul.innerHTML = '';
+          empties[type].classList.toggle('hidden', items.length > 0);
+          for (const cat of items) {
+            ul.appendChild(buildRow(cat, counts[cat.id] || 0));
+          }
+        }
+
+        function buildRow(cat, count) {
+          const li = document.createElement('li');
+          li.className = 'flex items-center justify-between gap-3 py-2';
+          li.dataset.id = cat.id;
+
+          const left = document.createElement('div');
+          left.className = 'min-w-0 flex-1';
+
+          const name = document.createElement('button');
+          name.type = 'button';
+          name.className = 'block w-full truncate text-left text-sm font-medium hover:underline';
+          name.textContent = cat.name;
+          name.title = 'Click to rename';
+          name.addEventListener('click', () => startEdit(li, cat));
+          left.appendChild(name);
+
+          const meta = document.createElement('p');
+          meta.className = 'text-xs text-slate-500';
+          meta.textContent = count === 1 ? '1 transaction' : `${count} transactions`;
+          left.appendChild(meta);
+
+          const del = document.createElement('button');
+          del.type = 'button';
+          del.className = 'shrink-0 rounded-md border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-100';
+          del.textContent = 'Delete';
+          del.setAttribute('aria-label', `Delete category ${cat.name}`);
+          del.addEventListener('click', () => openDelete(cat, count));
+
+          li.append(left, del);
+          return li;
+        }
+
+        function startEdit(li, cat) {
+          if (li.querySelector('input')) return;
+          li.innerHTML = '';
+          li.className = 'flex items-center gap-2 py-2';
+
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.value = cat.name;
+          input.maxLength = 50;
+          input.className = 'flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500';
+
+          const save = document.createElement('button');
+          save.type = 'button';
+          save.textContent = 'Save';
+          save.className = 'rounded-md bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-800 disabled:opacity-50';
+
+          const cancel = document.createElement('button');
+          cancel.type = 'button';
+          cancel.textContent = 'Cancel';
+          cancel.className = 'rounded-md border border-slate-300 px-3 py-1.5 text-xs';
+
+          async function commit() {
+            const next = input.value.trim();
+            if (!next) {
+              window.utils.toast('Name cannot be empty', 'error');
+              input.focus();
+              return;
+            }
+            if (next === cat.name) { render(); return; }
+            save.disabled = true;
+            try {
+              await window.categories.updateCategory(cat.id, next);
+              window.utils.toast('Category renamed', 'success');
+              await render();
+            } catch (err) {
+              console.error(err);
+              window.utils.toast(err.message || 'Could not rename', 'error');
+              save.disabled = false;
+            }
+          }
+
+          save.addEventListener('click', commit);
+          cancel.addEventListener('click', () => render());
+          input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); commit(); }
+            else if (e.key === 'Escape') { e.preventDefault(); render(); }
+          });
+
+          li.append(input, save, cancel);
+          input.focus();
+          input.select();
+        }
+
+        function openDelete(cat, count) {
+          pendingDeleteId = cat.id;
+          deleteName.textContent = `"${cat.name}" will be removed.`;
+          deleteWarning.textContent = count > 0
+            ? `${count} existing transaction${count === 1 ? '' : 's'} will become uncategorised.`
+            : '';
+          dialog.showModal();
+        }
+
+        dialog.addEventListener('close', async () => {
+          const id = pendingDeleteId;
+          pendingDeleteId = null;
+          if (dialog.returnValue !== 'confirm' || !id) return;
+          try {
+            await window.categories.deleteCategory(id);
+            window.utils.toast('Category deleted', 'success');
+            await render();
+          } catch (err) {
+            console.error(err);
+            window.utils.toast(err.message || 'Could not delete', 'error');
+          }
+        });
+
+        addForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const submit = addForm.querySelector('button[type="submit"]');
+          const name = addName.value.trim();
+          const type = addType.value;
+          if (!name) {
+            window.utils.toast('Name is required', 'error');
+            addName.focus();
+            return;
+          }
+          submit.disabled = true;
+          try {
+            await window.categories.createCategory(name, type);
+            window.utils.toast('Category added', 'success');
+            addForm.reset();
+            addName.focus();
+            await render();
+          } catch (err) {
+            console.error(err);
+            window.utils.toast(err.message || 'Could not add', 'error');
+          } finally {
+            submit.disabled = false;
+          }
+        });
+
+        render();
+      });
+    </script>
   </body>
 </html>

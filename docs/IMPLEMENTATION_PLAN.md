@@ -292,11 +292,11 @@ deleteCategory(id)        // Confirm before delete; show warning if transactions
 - Add new category form (name + type selector)
 - Show transaction count per category (optional but useful)
 
-- [ ] List income categories
-- [ ] List expense categories
-- [ ] Add new category
-- [ ] Rename category (inline edit)
-- [ ] Delete category with confirmation
+- [x] List income categories
+- [x] List expense categories
+- [x] Add new category
+- [x] Rename category (inline edit)
+- [x] Delete category with confirmation
 
 ---
 
@@ -573,8 +573,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 |---|---|
 | Phase 1 — Project Setup | ✅ Complete |
 | Phase 2 — Database & Storage | ✅ Complete |
-| Phase 3 — Authentication | 🟡 Code complete + trigger SQL run; awaiting Supabase Auth dashboard config + end-to-end smoke test |
-| Phase 4 — Categories | ⬜ Not started |
+| Phase 3 — Authentication | 🟡 Code complete + trigger SQL run + dashboard config done; awaiting end-to-end smoke test (folded into Phase 4 smoke test) |
+| Phase 4 — Categories | 🟡 Code complete; awaiting smoke test |
 | Phase 5 — Transactions CRUD | ⬜ Not started |
 | Phase 6 — Dashboard | ⬜ Not started |
 | Phase 7 — Reports | ⬜ Not started |
@@ -584,34 +584,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## 👉 Resume here
 
-Phase 3 application code is committed and pushed (commit `f750aa4`).
-Local Apache vhost is live at `http://my-ledger:8080/` (see `assets/js/supabase.js`, gitignored `.htaccess`).
+Phase 4 (Categories CRUD) code is complete. Files:
+- [`categories.html`](../categories.html) — add form, two-column lists, inline rename, delete dialog
+- [`assets/js/categories.js`](../assets/js/categories.js) — `getCategories`, `getTransactionCounts`, `createCategory`, `updateCategory`, `deleteCategory` (all RLS-scoped)
 
-### Manual step 1 — Run the auth trigger SQL ✅ Done
-- Ran [`db/triggers.sql`](../db/triggers.sql) in Supabase SQL Editor.
+Phase 3 manual steps (auth trigger SQL ✅, Supabase Auth dashboard config ✅) are already done; only the end-to-end smoke test remains, and it's folded into the Phase 4 smoke test below.
 
-### Manual step 2 — Configure Supabase Auth in the dashboard
-No Cloudflare Pages deployment yet, so use the local Apache vhost URL for now. Re-point Site URL and add the pages.dev URL after deploying.
+### Smoke test (Phase 3 + Phase 4)
+Apache vhost is already running at `http://my-ledger:8080/`.
 
-- **Authentication → URL Configuration**
-  - **Site URL:** `http://my-ledger:8080`
-  - **Redirect URLs (allowlist):** add `http://my-ledger:8080/**`
-  - *(After Cloudflare deploy: change Site URL to `https://<project>.pages.dev`, add `https://<project>.pages.dev/**` to the allowlist; keep the local entry.)*
-- **Authentication → Providers → Email**
-  - Enable **Confirm email**: On
-  - **Minimum password length:** 8
-
-### Smoke test after manual step 2
-Apache vhost is already running — no local server to start.
-
-1. Open `http://my-ledger:8080/register`, create an account, confirm via the email link
-2. Log in → should land on `/dashboard`
-3. Check Supabase `categories` table — new user should have 21 rows (trigger-seeded)
-4. Log out, try "Forgot password?" → check inbox → reset → log in with new password
+1. Open `http://my-ledger:8080/register`, create an account, confirm via the email link.
+2. Log in → should land on `/dashboard`.
+3. Go to `/categories` → 6 income + 15 expense categories (21 total, trigger-seeded) should render.
+4. Add a new category (e.g. "Test", expense) → toast confirms; row appears in Expense list.
+5. Click a category name → input appears; rename it; press Enter → toast confirms; new name renders.
+6. Click "Delete" on a category → modal opens; confirm → row disappears.
+7. Log out, try "Forgot password?" on `/login` → check inbox → reset → log in with new password.
 
 Once smoke test passes:
-- Flip Phase 3 status to ✅
-- Proceed to Phase 4 (Categories)
+- Flip Phase 3 + Phase 4 status to ✅
+- Proceed to Phase 5 (Transactions CRUD)
 
 ---
 
